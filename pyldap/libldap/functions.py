@@ -1,7 +1,9 @@
+from contextlib import contextmanager
+from .tools import iterate_array
 from .structures import *
 from .constants import *
 from . import lib_ldap
-from .ldapexception import LDAP_SUCCESS, LdapError, LDAP_URL_SUCCESS, URLError, LDAP_COMPARE_FALSE, LDAP_COMPARE_TRUE
+from .ldapexception import LDAP_SUCCESS, LdapError, URLError, LDAP_COMPARE_FALSE, LDAP_COMPARE_TRUE
 
 
 def _ldap_compare_check(result, func, args):
@@ -43,6 +45,7 @@ def _ldap_result_bool_map(result, func, args):
     else:
         return False
 
+
 ldap_set_option = lib_ldap.ldap_set_option
 ldap_set_option.restype = c_int
 ldap_set_option.argtypes = [POINTER(LDAP), c_int, c_void_p]
@@ -63,6 +66,7 @@ def ldap_initialize(uri):
     ldap = POINTER(LDAP)()
     _ldap_initialize(byref(ldap), uri)
     return ldap
+
 
 ldap_simple_bind_s = lib_ldap.ldap_simple_bind_s
 ldap_simple_bind_s.restype = c_int
@@ -127,6 +131,7 @@ def ldap_add_ext_s(ld, dn, attrs, sctrls, cctrls):
     mods_array = (POINTER(LDAPMod) * (len(attrs_p) + 1))(*(attrs_p + (None,)))
     return _ldap_add_ext_s(ld, dn, mods_array, sctrls, cctrls)
 
+
 ldap_delete_ext_s = lib_ldap.ldap_delete_ext_s
 ldap_delete_ext_s.restype = c_int
 ldap_delete_ext_s.argtypes = [POINTER(LDAP),
@@ -150,6 +155,7 @@ def ldap_modify_ext_s(ld, dn, mods, sctrls, cctrls):
     mods_array = (POINTER(LDAPMod) * (len(mods_p) + 1))(*(mods_p + (None,)))
     return _ldap_modify_ext_s(ld, dn, mods_array, sctrls, cctrls)
 
+
 ldap_compare_ext_s = lib_ldap.ldap_compare_ext_s
 ldap_compare_ext_s.restype = c_int
 ldap_compare_ext_s.argtypes = [POINTER(LDAP),
@@ -163,12 +169,12 @@ ldap_compare_ext_s.errcheck = _ldap_compare_check
 _ldap_rename_s = lib_ldap.ldap_rename_s
 _ldap_rename_s.restype = c_int
 _ldap_rename_s.argtypes = [POINTER(LDAP),
-                          c_char_p,
-                          c_char_p,
-                          c_char_p,
-                          c_int,
-                          POINTER(LDAPControl),
-                          POINTER(LDAPControl)]
+                           c_char_p,
+                           c_char_p,
+                           c_char_p,
+                           c_int,
+                           POINTER(LDAPControl),
+                           POINTER(LDAPControl)]
 _ldap_rename_s.errcheck = _ldap_result_negative_check
 
 
@@ -177,6 +183,7 @@ def ldap_rename_s(ld, dn, newrdn, newparent, deleteoldrdn, sctrls, cctrls):
         _ldap_rename_s(ld, dn, newrdn, newparent, 1, sctrls, cctrls)
     else:
         _ldap_rename_s(ld, dn, newrdn, newparent, 0, sctrls, cctrls)
+
 
 ldap_mods_free = lib_ldap.ldap_mods_free
 ldap_mods_free.restype = None
@@ -193,6 +200,7 @@ def _ldap_entry_handler(result, func, args):
         cast(result, POINTER(LDAPMessage)),
         func,
         args)
+
 
 ldap_first_entry = lib_ldap.ldap_first_entry
 ldap_first_entry.restype = c_int
@@ -211,6 +219,7 @@ def _ldap_get_dn_handler(result, func, args):
         func,
         args)
 
+
 ldap_get_dn = lib_ldap.ldap_get_dn
 ldap_get_dn.restype = c_int
 ldap_get_dn.argtypes = [POINTER(LDAP), POINTER(LDAPMessage)]
@@ -227,6 +236,7 @@ def ldap_str2dn(str, flags):
     _ldap_str2dn(bytes(str), byref(ldapdn), flags)
     return ldapdn
 
+
 _ldap_dn2str = lib_ldap.ldap_dn2str
 _ldap_dn2str.restype = c_int
 _ldap_dn2str.argtypes = [LDAPDN, POINTER(c_char_p), c_uint]
@@ -234,11 +244,12 @@ _ldap_dn2str.errcheck = _ldap_result_check
 
 
 def ldap_dn2str(ldap_dn, flags):
-    #FIXME: Free retval??
+    # FIXME: Free retval??
     ret_val = c_char_p()
     _ldap_dn2str(ldap_dn, byref(ret_val), flags)
     ret_str = ret_val.value
     return ret_str
+
 
 ldap_dnfree = lib_ldap.ldap_dnfree
 ldap_dnfree.restype = None
@@ -250,22 +261,62 @@ ldap_memfree.argtypes = [c_void_p]
 
 
 def _ldap_get_values_handler(result, func, args):
-    return _ldap_result_null_check(
-        cast(result, POINTER(c_char_p)),
-        func,
-        args)
+    return _ldap_result_null_check(cast(result, POINTER(c_char_p)),
+                                   func,
+                                   args)
 
-ldap_get_values = lib_ldap.ldap_get_values
-ldap_get_values.restype = c_int
-ldap_get_values.argtypes = [POINTER(LDAP), POINTER(LDAPMessage), c_char_p]
-ldap_get_values.errcheck = _ldap_get_values_handler
+_ldap_get_values = lib_ldap.ldap_get_values
+_ldap_get_values.restype = c_int
+_ldap_get_values.argtypes = [POINTER(LDAP), POINTER(LDAPMessage), c_char_p]
+_ldap_get_values.errcheck = _ldap_get_values_handler
+
+
+@contextmanager
+def ldap_get_values(ld, entry, attr):
+    ret_values = _ldap_get_values(ld, entry, attr)
+
+    yield iterate_array(ret_values)
+
+    ldap_value_free(ret_values)
+
+ldap_value_free = lib_ldap.ldap_value_free
+ldap_value_free.restype = None
+ldap_value_free.argtypes = [POINTER(c_char_p)]
+
+
+def _ldap_get_values_len_handler(result, func, args):
+    return cast(result,
+                _ldap_result_null_check(POINTER(POINTER(BerVal)),
+                                        func,
+                                        args
+                )
+    )
+
+
+@contextmanager
+def ldap_get_values_len(ld, entry, attr):
+    ret_values = _ldap_get_values_len(ld, entry, attr)
+
+    yield iterate_array(ret_values, lambda v: v[0].value)
+
+    ldap_value_free_len(ret_values)
+
+
+_ldap_get_values_len = lib_ldap.ldap_get_values_len
+_ldap_get_values_len.restype = c_int
+_ldap_get_values_len.argstypes = [POINTER(LDAP), POINTER(LDAPMessage), c_char_p]
+_ldap_get_values_len.errcheck = _ldap_get_values_len_handler
+
+ldap_value_free_len = lib_ldap.ldap_value_free_len
+ldap_value_free_len.restype = None
+ldap_value_free_len.argtypes = [POINTER(POINTER(BerVal))]
 
 
 def _ldap_attribute_handler(result, func, args):
-    return _ldap_result_null_check(
-        cast(result, c_char_p),
-        func,
-        args)
+    return _ldap_result_null_check(cast(result, c_char_p),
+                                   func,
+                                   args)
+
 
 _ldap_first_attribute = lib_ldap.ldap_first_attribute
 _ldap_first_attribute.restype = c_int
@@ -277,6 +328,7 @@ def ldap_first_attribute(ld, entry):
     ber = POINTER(BerElement)()
     attr = _ldap_first_attribute(ld, entry, byref(ber))
     return attr, ber
+
 
 ldap_next_attribute = lib_ldap.ldap_next_attribute
 ldap_next_attribute.restype = c_int
@@ -302,6 +354,7 @@ def ldap_url_parse(url):
     lud = POINTER(LDAPURLDesc)()
     _ldap_url_parse(url, byref(lud))
     return lud.contents
+
 
 ldap_free_urldesc = lib_ldap.ldap_free_urldesc
 ldap_free_urldesc.restype = None

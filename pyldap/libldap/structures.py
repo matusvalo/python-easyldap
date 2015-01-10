@@ -27,6 +27,11 @@ class BerVal(Structure):
         val = bytes(string)
         return cls(bv_val=c_char_p(val), bv_len=c_ulong(len(val)))
 
+    @property
+    def value(self):
+        val = cast(self.bv_val, POINTER(c_char))
+        return bytes(val[0:self.bv_len])
+
 
 class LDAPAVA(Structure):
     _fields_ = [('la_attr', BerVal),

@@ -1,6 +1,6 @@
 from .libldap.functions import *
 from .dn import Dn, RDn
-from pyldap.tools import ldap_encode
+from .tools import ldap_encode
 
 
 class QueryResult(object):
@@ -12,10 +12,9 @@ class QueryResult(object):
         return ldap_count_entries(self._ldap, self._query_result)
 
     def __iter__(self):
-        return self.entries
+        return self.entries()
 
-    @property
-    def entries(self):
+    def entries(self, raw=False):
         entry = ldap_first_entry(self._ldap, self._query_result)
         if not entry:
             yield
@@ -26,7 +25,10 @@ class QueryResult(object):
             ldap_memfree(entry_dn)
         for attr in self._get_attrs(entry):
             try:
-                ret_entry[attr.value] = tuple(self._get_values(entry, attr))
+                if raw:
+                    ret_entry[attr.value] = tuple(self._get_raw_values(entry, attr))
+                else:
+                    ret_entry[attr.value] = tuple(self._get_values(entry, attr))
             finally:
                 ldap_memfree(attr)
         yield ret_entry
@@ -42,22 +44,21 @@ class QueryResult(object):
                 ldap_memfree(entry_dn)
             for attr in self._get_attrs(entry):
                 try:
-                    ret_entry[attr.value] = tuple(map(lambda v: v, self._get_values(entry, attr)))
+                    if raw:
+                        ret_entry[attr.value] = tuple(map(lambda v: v, self._get_raw_values(entry, attr)))
+                    else:
+                        ret_entry[attr.value] = tuple(map(lambda v: v, self._get_values(entry, attr)))
                 finally:
                     ldap_memfree(attr)
             yield ret_entry
 
-    def _get_values(self, entry, attr):
+    def _get_raw_values(self, entry, attr):
+        with ldap_get_values(self._ldap, entry, attr) as values_iterator:
+            return tuple(values_iterator)
 
-        # TODO: Use ldap_get_values_len instead
-        vals = ldap_get_values(self._ldap, entry, attr)
-        if bool(vals):
-            i = 0
-            while True:
-                if not vals[i]:
-                    break
-                yield vals[i]
-                i += 1
+    def _get_values(self, entry, attr):
+        with ldap_get_values_len(self._ldap, entry, attr) as values_iterator:
+            return tuple(values_iterator)
 
     def _get_attrs(self, entry):
         attr, ber = ldap_first_attribute(self._ldap, entry)
@@ -109,7 +110,7 @@ class Entry(BaseEntry, dict):
         if len(query_result) != 1:
             raise ValueError
 
-        self._search_result_entry = tuple(query_result.entries)[0]
+        self._search_result_entry = tuple(query_result.entries())[0]
 
         self.update(self._search_result_entry)
 
