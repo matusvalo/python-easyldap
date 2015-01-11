@@ -1,4 +1,5 @@
 from ctypes import *
+from .tools import iterate_array
 from ..tools import is_iterable
 
 
@@ -140,30 +141,25 @@ class LDAPURLDesc(Structure):
     @property
     def lud_dn(self):
         return self._lud_dn
+
     @property
     def lud_attrs(self):
         if self._lud_attrs:
-            i = 0
-            while True:
-                if not self._lud_attrs[i]:
-                    break
-                yield self._lud_attrs[i]
-                i += 1
+            yield iterate_array(self._lud_attrs)
+
     @property
     def lud_scope(self):
         return self._lud_scope
+
     @property
     def lud_filter(self):
         return self._lud_filter
+
     @property
     def lud_exts(self):
         if self._lud_exts:
-            i = 0
-            while True:
-                if not self._lud_exts[i]:
-                    break
-                yield self._lud_exts[i]
-                i += 1
+            yield iterate_array(self._lud_exts)
+
     @property
     def lud_crit_exts(self):
         return bool(self._lud_crit_exts)
