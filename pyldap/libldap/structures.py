@@ -30,8 +30,7 @@ class BerVal(Structure):
 
     @property
     def value(self):
-        val = cast(self.bv_val, POINTER(c_char))
-        return bytes(val[0:self.bv_len])
+        return bytes(self.bv_val)
 
 
 class LDAPAVA(Structure):
