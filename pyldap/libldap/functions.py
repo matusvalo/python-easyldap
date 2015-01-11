@@ -275,9 +275,10 @@ _ldap_get_values.errcheck = _ldap_get_values_handler
 def ldap_get_values(ld, entry, attr):
     ret_values = _ldap_get_values(ld, entry, attr)
 
-    yield iterate_array(ret_values)
-
-    ldap_value_free(ret_values)
+    try:
+        yield iterate_array(ret_values)
+    finally:
+        ldap_value_free(ret_values)
 
 ldap_value_free = lib_ldap.ldap_value_free
 ldap_value_free.restype = None
@@ -297,9 +298,10 @@ def _ldap_get_values_len_handler(result, func, args):
 def ldap_get_values_len(ld, entry, attr):
     ret_values = _ldap_get_values_len(ld, entry, attr)
 
-    yield iterate_array(ret_values, lambda v: v[0].value)
-
-    ldap_value_free_len(ret_values)
+    try:
+        yield iterate_array(ret_values, lambda v: v[0].value)
+    finally:
+        ldap_value_free_len(ret_values)
 
 
 _ldap_get_values_len = lib_ldap.ldap_get_values_len
