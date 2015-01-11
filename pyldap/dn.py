@@ -164,7 +164,7 @@ class Dn(tuple):
         return Dn(self[1:], self._flags)
 
     def _convert_format(self, out_format):
-        type(self).convert_format(self._dn_str, self._flags, out_format)
+        return type(self).convert_format(self._dn_str, self._flags, out_format)
 
     @classmethod
     def convert_format(cls, dn_str, in_format, out_format):
