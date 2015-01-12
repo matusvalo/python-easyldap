@@ -25,7 +25,7 @@ class LdapConnection(object):
             raise ValueError
         ldap_set_option(self._ldap, LDAP_OPT_PROTOCOL_VERSION, byref(LDAP_VERSIONS[version]))
 
-    def simle_bind(self, rootdn, passwd):
+    def simple_bind(self, rootdn, passwd):
         ldap_simple_bind_s(self._ldap, ldap_encode(rootdn), ldap_encode(passwd))
 
     def unbind(self):
