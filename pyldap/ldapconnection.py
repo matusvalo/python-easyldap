@@ -80,7 +80,7 @@ class LdapConnection(object):
         if battrs is not None:
             for battr_name in battrs:
                 mod = LDAPMod.create_binary(0,
-                                            ldap_encode(attr_name),
+                                            ldap_encode(battr_name),
                                             values=ldap_encode(battrs[battr_name]))
                 mods.append(mod)
 
