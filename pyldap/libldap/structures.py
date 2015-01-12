@@ -85,14 +85,6 @@ class LDAPMod(Structure):
                 ('mod_vals', ModVals)]         # Attr. values
 
     def __init__(self, mod_op, mod_type, mod_vals):
-        if mod_op != LDAPMod.LDAP_MOD_OP and                  \
-           mod_op != LDAPMod.LDAP_MOD_ADD and                 \
-           mod_op != LDAPMod.LDAP_MOD_DELETE and              \
-           mod_op != LDAPMod.LDAP_MOD_REPLACE and             \
-           mod_op != LDAPMod.LDAP_MOD_INCREMENT and           \
-           mod_op != LDAPMod.LDAP_MOD_BVALUES and             \
-           mod_op != 0x0:
-            raise ValueError
         super().__init__(c_int(mod_op), mod_type, mod_vals)
 
     @classmethod

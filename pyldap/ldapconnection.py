@@ -92,7 +92,7 @@ class LdapConnection(object):
         else:
             ldap_delete_ext_s(self._ldap, ldap_encode(entry), None, None)
 
-    def modify(self, dn, attrs=None):
+    def modify(self, dn, attrs=None, battrs=None):
         """
         :param dn:
         :param attrs:
@@ -100,25 +100,44 @@ class LdapConnection(object):
           <attr_name>: (<mod_op>, [<attr_val1>, <attr_val2>, ...]),
           ...
          }
+        :param battrs:
+         {<battr_name>: (<mod_op>, <battr_val>),
+          <battr_name>: (<mod_op>, [<battr_val1>, <battr_val2>, ...]),
+          ...
+         }
         """
-        # TODO: battrs?
         mods = list()
-        if attrs is None:
-            raise ValueError
+        if attrs is None and battrs is None:
+            raise ValueError('attrs or battrs parameter must be specified')
         if attrs is not None:
             for attr_name in attrs:
                 if len(attrs[attr_name]) != 2:
-                    raise ValueError
+                    raise ValueError('Value must be in the form: <OP>, <values>')
                 if attrs[attr_name][0] not in (LDAPMod.LDAP_MOD_ADD, LDAPMod.LDAP_MOD_DELETE, LDAPMod.LDAP_MOD_REPLACE):
-                    raise ValueError
+                    raise ValueError('Wrong OP code specified')
                 if is_iterable(attrs[attr_name][1]):
                     mod = LDAPMod.create_string(attrs[attr_name][0],
-                                                attr_name,
+                                                ldap_encode(attr_name),
                                                 values=map(lambda a: ldap_encode(a), attrs[attr_name][1]))
                 else:
                     mod = LDAPMod.create_string(attrs[attr_name][0],
-                                                attr_name,
+                                                ldap_encode(attr_name),
                                                 values=ldap_encode(attrs[attr_name][1]))
+                mods.append(mod)
+        if battrs is not None:
+            for battr_name in battrs:
+                if len(battrs[battr_name]) != 2:
+                    raise ValueError('Value must be in the form: <OP>, <values>')
+                if battrs[battr_name][0] not in (LDAPMod.LDAP_MOD_ADD, LDAPMod.LDAP_MOD_DELETE, LDAPMod.LDAP_MOD_REPLACE):
+                    raise ValueError('Wrong OP code specified')
+                if is_iterable(battrs[battr_name][1]):
+                    mod = LDAPMod.create_binary(battrs[battr_name][0] | LDAPMod.LDAP_MOD_BVALUES,
+                                                ldap_encode(battr_name),
+                                                values=map(lambda a: ldap_encode(a), battrs[battr_name][1]))
+                else:
+                    mod = LDAPMod.create_binary(battrs[battr_name][0] | LDAPMod.LDAP_MOD_BVALUES,
+                                                ldap_encode(battr_name),
+                                                values=ldap_encode(battrs[battr_name][1]))
                 mods.append(mod)
         ldap_modify_ext_s(self._ldap, ldap_encode(dn), mods, None, None)
 
