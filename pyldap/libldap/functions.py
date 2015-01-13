@@ -102,17 +102,21 @@ def ldap_search_ext_s(ld, base, scope, filter, attrs, attrsonly, serverctrls, cl
     if scope not in SCOPES.values():
         raise ValueError
     result = POINTER(LDAPMessage)()
-    _ldap_search_ext_s(ld,
-                       base,
-                       scope,
-                       filter,
-                       None if attrs is None else byref(attrs_array(attrs)),
-                       attrsonly,
-                       serverctrls,
-                       clientctrls,
-                       timeout,
-                       sizelimit,
-                       byref(result))
+    try:
+        _ldap_search_ext_s(ld,
+                           base,
+                           scope,
+                           filter,
+                           None if attrs is None else byref(attrs_array(attrs)),
+                           attrsonly,
+                           serverctrls,
+                           clientctrls,
+                           timeout,
+                           sizelimit,
+                           byref(result))
+    except LdapError as e:
+        ldap_msgfree(result)
+        raise
     return result
 
 ldap_msgfree = lib_ldap.ldap_msgfree
