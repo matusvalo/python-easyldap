@@ -115,6 +115,7 @@ def ldap_search_ext_s(ld, base, scope, filter, attrs, attrsonly, serverctrls, cl
                            sizelimit,
                            byref(result))
     except LdapError as e:
+        # LDAPMsg should be freed also when search failes. See Notes in  LDAP_SEARCH(3).
         ldap_msgfree(result)
         raise
     return result
