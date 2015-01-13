@@ -115,6 +115,10 @@ def ldap_search_ext_s(ld, base, scope, filter, attrs, attrsonly, serverctrls, cl
                        byref(result))
     return result
 
+ldap_msgfree = lib_ldap.ldap_msgfree
+ldap_msgfree.restype = int
+ldap_msgfree.argtypes = [POINTER(LDAPMessage)]
+
 
 _ldap_add_ext_s = lib_ldap.ldap_add_ext_s
 _ldap_add_ext_s.restype = c_int
