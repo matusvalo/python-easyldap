@@ -8,10 +8,11 @@ __all__ = ['LdapConnection']
 
 
 class LdapConnection(object):
-    def __init__(self, uri):
+    def __init__(self, uri, protocol_version=3):
         if not ldap_is_ldap_url(ldap_encode(uri)):
             raise ValueError('Wrong URI format.')
         self._ldap = ldap_initialize(ldap_encode(uri))
+        self.protocol_version = int(protocol_version)
 
     @property
     def protocol_version(self):
