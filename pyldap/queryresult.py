@@ -1,6 +1,6 @@
 from .libldap.functions import *
 from .dn import Dn, RDn
-from .tools import ldap_encode
+from .tools import ldap_encode, ldap_decode, build_ascii_ldapmod, build_binary_ldapmod, is_ascii
 
 
 class QueryResult(object):
@@ -29,9 +29,9 @@ class QueryResult(object):
         for attr in self._get_attrs(entry):
             try:
                 if raw:
-                    ret_entry[attr.value] = tuple(self._get_raw_values(entry, attr))
+                    ret_entry[attr.value] = self._get_raw_values(entry, attr)
                 else:
-                    ret_entry[attr.value] = tuple(self._get_values(entry, attr))
+                    ret_entry[ldap_decode(attr.value)] = self._get_values(entry, attr)
             finally:
                 ldap_memfree(attr)
         yield ret_entry
@@ -48,9 +48,9 @@ class QueryResult(object):
             for attr in self._get_attrs(entry):
                 try:
                     if raw:
-                        ret_entry[attr.value] = tuple(map(lambda v: v, self._get_raw_values(entry, attr)))
+                        ret_entry[attr.value] = self._get_raw_values(entry, attr)
                     else:
-                        ret_entry[attr.value] = tuple(map(lambda v: v, self._get_values(entry, attr)))
+                        ret_entry[ldap_decode(attr.value)] = self._get_values(entry, attr)
                 finally:
                     ldap_memfree(attr)
             yield ret_entry
@@ -61,7 +61,7 @@ class QueryResult(object):
 
     def _get_values(self, entry, attr):
         with ldap_get_values_len(self._ldap, entry, attr) as values_iterator:
-            return tuple(values_iterator)
+            return tuple(map(lambda v: ldap_decode(v), values_iterator))
 
     def _get_attrs(self, entry):
         attr, ber = ldap_first_attribute(self._ldap, entry)
@@ -138,58 +138,43 @@ class Entry(BaseEntry, dict):
                 raise ValueError
 
         if newparent is None:
-            ldap_rename_s(self._ldap, bytes(self.dn),
-                          bytes(rdn),
+            ldap_rename_s(self._ldap, ldap_encode(self.dn),
+                          ldap_encode(rdn),
                           None,
                           delete_old_rdn, None, None)
-            self._dn = bytes(Dn((rdn,) + self.dn.base_dn))
+            self._dn = ldap_encode(Dn((rdn,) + self.dn.base_dn))
         else:
             if not isinstance(parent, Dn):
                 raise ValueError
-            ldap_rename_s(self._ldap, bytes(self.dn),
-                          bytes(rdn),
-                          bytes(parent),
+            ldap_rename_s(self._ldap, ldap_encode(self.dn),
+                          ldap_encode(rdn),
+                          ldap_encode(parent),
                           delete_old_rdn, None, None)
-            self._dn = bytes(Dn((rdn,) + parent))
+            self._dn = ldap_encode(Dn((rdn,) + parent))
 
     def commit(self):
         mods = list()
         for key, val in self.items():
             try:
-                ldap_entry_val = tuple(self._search_result_entry[key])
-                if ldap_entry_val != tuple(val):
-                    if is_iterable(val):
-                        mods.append(LDAPMod.create_string(LDAPMod.LDAP_MOD_REPLACE,
-                                                          bytes(key),
-                                                          values=map(lambda a: bytes(a), tuple(val))))
+                if tuple(self._search_result_entry[key]) != tuple(val):
+                    if all(map(lambda v: is_ascii(v), val)):
+                        mods.append(build_ascii_ldapmod(key, LDAPMod.LDAP_MOD_REPLACE, val))
                     else:
-                        mods.append(LDAPMod.create_string(LDAPMod.LDAP_MOD_REPLACE,
-                                                          bytes(key),
-                                                          values=bytes(val)))
+                        mods.append(build_binary_ldapmod(key, LDAPMod.LDAP_MOD_REPLACE, val))
             except KeyError:
-                if is_iterable(val):
-                    mods.append(LDAPMod.create_string(LDAPMod.LDAP_MOD_ADD,
-                                                      bytes(key),
-                                                      values=map(lambda a: bytes(a), tuple(val))))
+                if all(map(lambda v: is_ascii(v), val)):
+                    mods.append(build_ascii_ldapmod(key, LDAPMod.LDAP_MOD_ADD, val))
                 else:
-                    mods.append(LDAPMod.create_string(LDAPMod.LDAP_MOD_ADD,
-                                                      bytes(key),
-                                                      values=bytes(val)))
+                    mods.append(build_binary_ldapmod(key, LDAPMod.LDAP_MOD_ADD, val))
         for key, val in self._search_result_entry.items():
             if key not in self.keys():
-                if is_iterable(val):
-                    mods.append(LDAPMod.create_string(LDAPMod.LDAP_MOD_DELETE,
-                                                      bytes(key),
-                                                      values=map(lambda a: bytes(a), tuple(val))))
-                else:
-                    mods.append(LDAPMod.create_string(LDAPMod.LDAP_MOD_DELETE,
-                                                      bytes(key),
-                                                      values=bytes(val)))
+                mods.append(build_ascii_ldapmod(key, LDAPMod.LDAP_MOD_DELETE, val))
         try:
             ldap_modify_ext_s(self._ldap, self._dn, mods, None, None)
-        except Exception:
+        except Exception as e:
             self.clear()
             self.update(self._search_result_entry)
-
-        self._init_data()
+            raise
+        finally:
+            self._init_data()
 

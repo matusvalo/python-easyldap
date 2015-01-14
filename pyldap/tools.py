@@ -12,19 +12,46 @@ def is_ascii(s):
         return all(ord(c) < 128 for c in s)
 
 
-def ldap_encode(s):
+def ldap_decode(s):
+    if s is None:
+        return None
     import base64
     if isinstance(s, str):
-        if is_ascii(s):
-            return s.encode('utf8')
-        else:
-            return base64.b64encode(s.encode('utf8'))
+        return str(s)
     elif isinstance(s, bytes):
-        if is_ascii(s):
-            return s
-        else:
-            return base64.b64encode(s)
+        return s.decode('utf8')
+    else:
+        try:
+            return str(s)
+        except:
+            pass
 
+        try:
+            return bytes(s).encode('utf8')
+        except:
+            pass
+        raise ValueError('Cannot decode to bytes')
+
+
+def ldap_encode(s):
+    if s is None:
+        return None
+    import base64
+    if isinstance(s, str):
+        return s.encode('utf8')
+    elif isinstance(s, bytes):
+        return bytes(s)
+    else:
+        try:
+            return bytes(s)
+        except:
+            pass
+
+        try:
+            return str(s).encode('utf8')
+        except:
+            pass
+        raise ValueError('Cannot encode to bytes')
 
 def build_binary_ldapmod(battr_name, op, vals):
     if is_iterable(vals):

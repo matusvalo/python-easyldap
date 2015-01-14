@@ -63,7 +63,7 @@ class LDAPMod(Structure):
         def create_binary(cls, values):
             if is_iterable(values):
                 berval_list = list(map(lambda x: pointer(BerVal.from_string(x)), values))
-                values_array = (POINTER(BerVal) * (len(values) + 1))(*(berval_list + [None]))
+                values_array = (POINTER(BerVal) * (len(berval_list) + 1))(*(berval_list + [None]))
             else:
                 berval_value = pointer(BerVal.from_string(values))
                 values_array = (POINTER(BerVal) * 2)(berval_value, None)
