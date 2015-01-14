@@ -55,3 +55,6 @@ target/
 
 # PyCharm files
 .idea/
+
+# vim files
+*.swp
