@@ -1,7 +1,7 @@
 from .libldap.functions import *
 from .libldap.constants import *
 from .libldap.structures import *
-from .tools import is_iterable, ldap_encode
+from .tools import ldap_encode, build_ascii_ldapmod, build_binary_ldapmod
 from .queryresult import QueryResult, Entry
 
 __all__ = ['LdapConnection']
@@ -115,14 +115,7 @@ class LdapConnection(object):
                     raise ValueError('Value must be in the form: <OP>, <values>')
                 if attrs[attr_name][0] not in (LDAPMod.LDAP_MOD_ADD, LDAPMod.LDAP_MOD_DELETE, LDAPMod.LDAP_MOD_REPLACE):
                     raise ValueError('Wrong OP code specified')
-                if is_iterable(attrs[attr_name][1]):
-                    mod = LDAPMod.create_string(attrs[attr_name][0],
-                                                ldap_encode(attr_name),
-                                                values=map(lambda a: ldap_encode(a), attrs[attr_name][1]))
-                else:
-                    mod = LDAPMod.create_string(attrs[attr_name][0],
-                                                ldap_encode(attr_name),
-                                                values=ldap_encode(attrs[attr_name][1]))
+                mod = build_ascii_ldapmod(attr_name, attrs[attr_name][0], attrs[attr_name][1])
                 mods.append(mod)
         if battrs is not None:
             for battr_name in battrs:
@@ -130,14 +123,7 @@ class LdapConnection(object):
                     raise ValueError('Value must be in the form: <OP>, <values>')
                 if battrs[battr_name][0] not in (LDAPMod.LDAP_MOD_ADD, LDAPMod.LDAP_MOD_DELETE, LDAPMod.LDAP_MOD_REPLACE):
                     raise ValueError('Wrong OP code specified')
-                if is_iterable(battrs[battr_name][1]):
-                    mod = LDAPMod.create_binary(battrs[battr_name][0] | LDAPMod.LDAP_MOD_BVALUES,
-                                                ldap_encode(battr_name),
-                                                values=map(lambda a: ldap_encode(a), battrs[battr_name][1]))
-                else:
-                    mod = LDAPMod.create_binary(battrs[battr_name][0] | LDAPMod.LDAP_MOD_BVALUES,
-                                                ldap_encode(battr_name),
-                                                values=ldap_encode(battrs[battr_name][1]))
+                mod = build_binary_ldapmod(battr_name, battrs[battr_name][0], battrs[battr_name][1])
                 mods.append(mod)
         ldap_modify_ext_s(self._ldap, ldap_encode(dn), mods, None, None)
 

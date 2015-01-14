@@ -1,3 +1,5 @@
+from .libldap.structures import LDAPMod
+
 def is_iterable(obj):
     from collections import Iterable
     return not (isinstance(obj, str) or isinstance(obj, bytes)) and isinstance(obj, Iterable)
@@ -22,3 +24,26 @@ def ldap_encode(s):
             return s
         else:
             return base64.b64encode(s)
+
+
+def build_binary_ldapmod(battr_name, op, vals):
+    if is_iterable(vals):
+        mod = LDAPMod.create_binary(op | LDAPMod.LDAP_MOD_BVALUES,
+                                    ldap_encode(battr_name),
+                                    values=map(lambda a: ldap_encode(a), vals))
+    else:
+        mod = LDAPMod.create_binary(op | LDAPMod.LDAP_MOD_BVALUES,
+                                    ldap_encode(battr_name),
+                                    values=ldap_encode(vals))
+    return mod
+
+def build_ascii_ldapmod(attr_name, op, vals):
+    if is_iterable(vals):
+        mod = LDAPMod.create_string(op,
+                                    ldap_encode(attr_name),
+                                    values=map(lambda a: ldap_encode(a),vals))
+    else:
+        mod = LDAPMod.create_string(op,
+                                    ldap_encode(attr_name),
+                                    values=ldap_encode(vals))
+    return mod

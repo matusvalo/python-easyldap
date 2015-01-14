@@ -1,6 +1,5 @@
 from ctypes import *
-from .tools import iterate_array
-from ..tools import is_iterable
+from .tools import iterate_array, is_iterable
 
 
 class BerElement(Structure):
