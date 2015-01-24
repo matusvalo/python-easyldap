@@ -26,6 +26,12 @@ class LdapConnection(object):
             raise ValueError
         ldap_set_option(self._ldap, LDAP_OPT_PROTOCOL_VERSION, byref(LDAP_VERSIONS[version]))
 
+    def tls_inplace(self):
+        return ldap_tls_inplace(self._ldap)
+
+    def start_tls(self):
+        ldap_start_tls_s(self._ldap, None, None)
+
     def simple_bind(self, rootdn, passwd):
         ldap_simple_bind_s(self._ldap, ldap_encode(rootdn), ldap_encode(passwd))
 

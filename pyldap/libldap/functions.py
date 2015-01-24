@@ -370,3 +370,17 @@ def ldap_url_parse(url):
 ldap_free_urldesc = lib_ldap.ldap_free_urldesc
 ldap_free_urldesc.restype = None
 ldap_free_urldesc.argtypes = [POINTER(LDAPURLDesc)]
+
+_ldap_tls_inplace = lib_ldap.ldap_tls_inplace
+_ldap_tls_inplace.restype = c_int
+_ldap_tls_inplace.argtypes = [POINTER(LDAP)]
+
+
+def ldap_tls_inplace(ldap):
+    return True if _ldap_tls_inplace(ldap) == 1 else False
+
+
+ldap_start_tls_s = lib_ldap.ldap_start_tls_s
+ldap_start_tls_s.restype = c_int
+ldap_start_tls_s.argtypes = [POINTER(LDAP), POINTER(POINTER(LDAPControl)), POINTER(POINTER(LDAPControl))]
+ldap_start_tls_s.errcheck = _ldap_result_check
