@@ -15,6 +15,10 @@ class LdapConnection(object):
         self.protocol_version = int(protocol_version)
 
     @property
+    def ldap_connection(self):
+        return self._ldap
+
+    @property
     def protocol_version(self):
         version = c_int()
         ldap_get_option(self._ldap, LDAP_OPT_PROTOCOL_VERSION, byref(version))

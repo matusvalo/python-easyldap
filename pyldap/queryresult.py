@@ -17,6 +17,10 @@ class QueryResult(object):
     def __del__(self):
         ldap_msgfree(self._query_result)
 
+    @property
+    def ldap_message(self):
+        return self._query_result
+
     def entries(self, raw=False):
         entry = ldap_first_entry(self._ldap, self._query_result)
         if not entry:
