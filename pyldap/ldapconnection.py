@@ -148,8 +148,3 @@ class LdapConnection(object):
                                   ldap_encode(attr),
                                   BerVal.from_string(ldap_encode(value)),
                                   None, None)
-
-    @property
-    def ldap(self):
-        return self._ldap
-
