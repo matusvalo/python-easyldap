@@ -194,5 +194,7 @@ ldap_value_free_len (3) - LDAP attribute value handling routines
 """
 
 from ctypes import CDLL
+from ctypes.util import find_library
 
-lib_ldap = CDLL('libldap.so')
+lib_name = find_library('ldap')
+lib_ldap = CDLL(lib_name)
