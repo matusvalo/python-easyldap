@@ -135,7 +135,7 @@ class LDAPURLDesc(Structure):
     @property
     def lud_attrs(self):
         if self._lud_attrs:
-            yield iterate_array(self._lud_attrs)
+            return tuple(iterate_array(self._lud_attrs))
 
     @property
     def lud_scope(self):
