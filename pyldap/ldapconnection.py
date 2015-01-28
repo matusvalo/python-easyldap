@@ -51,8 +51,8 @@ class LdapConnection(object):
                                    bool(attrsonly),
                                    None,
                                    None,
-                                   None,
-                                   0)
+                                   timeout,
+                                   sizelimit)
 
         return QueryResult(self._ldap, result)
 

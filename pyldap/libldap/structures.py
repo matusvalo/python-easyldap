@@ -166,3 +166,13 @@ LDAPURLDesc._fields_ = [('_lud_next', POINTER(LDAPURLDesc)),   # libLDAP interna
                         ('_lud_filter', c_char_p),             # LDAP search filter
                         ('_lud_exts', POINTER(c_char_p)),      # LDAP extensions
                         ('_lud_crit_exts', c_int)]             # true if any extension is critical
+
+
+class Timeval(Structure):
+    # FIXME: Architecture dependent!
+    _fields_ = [("tv_sec", c_long), ("tv_usec", c_long)]
+
+    @classmethod
+    def from_time_delta(cls, timedelta):
+        return cls(int(timedelta.total_seconds()),
+                   timedelta.microseconds)

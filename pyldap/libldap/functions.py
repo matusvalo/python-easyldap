@@ -104,6 +104,7 @@ def ldap_search_ext_s(ld, base, scope, filter, attrs, attrsonly, serverctrls, cl
     if scope not in SCOPES.values():
         raise ValueError
     result = POINTER(LDAPMessage)()
+    timeout_struct = None if timeout is None else Timeval.from_time_delta(timeout)
     try:
         _ldap_search_ext_s(ld,
                            base,
@@ -113,7 +114,7 @@ def ldap_search_ext_s(ld, base, scope, filter, attrs, attrsonly, serverctrls, cl
                            1 if attrsonly is True else 0,
                            serverctrls,
                            clientctrls,
-                           timeout,
+                           timeout_struct,
                            sizelimit,
                            byref(result))
     except LdapError as e:
