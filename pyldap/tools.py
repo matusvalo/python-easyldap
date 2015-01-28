@@ -27,7 +27,7 @@ def ldap_decode(s):
             pass
 
         try:
-            return bytes(s).encode('utf8')
+            return bytes(s).decode('utf8')
         except:
             pass
         raise ValueError('Cannot decode to bytes')
