@@ -1,7 +1,7 @@
 from collections import namedtuple
 from functools import reduce
 from .libldap.functions import *
-from .tools import ldap_encode, is_iterable
+from .tools import ldap_encode, is_iterable, ldap_decode
 
 
 AvaTuple = namedtuple('AvaTuple', ['attr', 'val'])
@@ -53,7 +53,7 @@ class Ava(AvaTuple):
         return self.attr + b'=' + self.val
 
     def __str__(self):
-        return '{}={}'.format(str(self.attr), str(self.val))
+        return '{}={}'.format(ldap_decode(self.attr), ldap_decode(self.val))
 
 
 class RDn(tuple):
@@ -80,7 +80,7 @@ class RDn(tuple):
         return tuple.__new__(cls, ava_list)
 
     def __str__(self):
-        avas = map(lambda ava: '{}={}'.format(str(ava.attr), str(ava.val)), self)
+        avas = map(lambda ava: '{}={}'.format(ldap_decode(ava.attr), ldap_decode(ava.val)), self)
         return reduce(lambda x, y: '{}+{}'.format(x, y), avas)
 
     def __bytes__(self):
@@ -145,7 +145,7 @@ class Dn(tuple):
         super().__init__()
 
     def __str__(self):
-        return str(self._dn_str)
+        return ldap_decode(self._dn_str)
 
     def __bytes__(self):
         return bytes(self._dn_str)
