@@ -47,7 +47,7 @@ class LdapConnection(object):
                                    ldap_encode(base),
                                    SCOPES[scope],
                                    ldap_encode(filter),
-                                   attrs,
+                                   None if attrs is None else [ldap_encode(s) for s in attrs],
                                    bool(attrsonly),
                                    None,
                                    None,

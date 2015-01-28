@@ -70,12 +70,13 @@ class QueryResult(object):
     def _get_attrs(self, entry):
         attr, ber = ldap_first_attribute(self._ldap, entry)
         try:
-            yield attr
-            while True:
-                attr = ldap_next_attribute(self._ldap, entry, ber)
-                if not attr.value:
-                    break
+            if attr.value:
                 yield attr
+                while True:
+                    attr = ldap_next_attribute(self._ldap, entry, ber)
+                    if not attr.value:
+                        break
+                    yield attr
         finally:
             ber_free(ber, 0)
 

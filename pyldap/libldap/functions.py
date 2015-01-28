@@ -98,7 +98,9 @@ _ldap_search_ext_s.errcheck = _ldap_result_check
 
 def ldap_search_ext_s(ld, base, scope, filter, attrs, attrsonly, serverctrls, clientctrls, timeout, sizelimit):
     if attrs is not None:
-        attrs_array = c_char_p * len(attrs)
+        attrs_list = [c_char_p(x) for x in attrs] + [None]
+        attrs_array = cast((c_char_p * len(attrs_list))(*attrs_list),
+                           POINTER(c_char_p))
     if scope not in SCOPES.values():
         raise ValueError
     result = POINTER(LDAPMessage)()
@@ -107,8 +109,8 @@ def ldap_search_ext_s(ld, base, scope, filter, attrs, attrsonly, serverctrls, cl
                            base,
                            scope,
                            filter,
-                           None if attrs is None else byref(attrs_array(attrs)),
-                           attrsonly,
+                           None if attrs is None else attrs_array,
+                           1 if attrsonly is True else 0,
                            serverctrls,
                            clientctrls,
                            timeout,
@@ -308,7 +310,10 @@ def ldap_get_values_len(ld, entry, attr):
     ret_values = _ldap_get_values_len(ld, entry, attr)
 
     try:
-        yield iterate_array(ret_values, lambda v: v[0].value)
+        if ret_values:
+            yield iterate_array(ret_values, lambda v: v[0].value)
+        else:
+            yield ()
     finally:
         ldap_value_free_len(ret_values)
 
