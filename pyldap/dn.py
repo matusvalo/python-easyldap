@@ -138,7 +138,7 @@ class Dn(tuple):
                 if not isinstance(rdn, RDn):
                     raise ValueError
             in_str = reduce(lambda x, y: ldap_encode(bytes(x)) + b',' + ldap_encode(bytes(y)), other)
-            self._dn_str = type(self).convert_format(in_str, Dn.LDAP_DN_FORMAT_LDAPV3, flags)
+            self._dn_str = type(self)._convert_format(in_str, Dn.LDAP_DN_FORMAT_LDAPV3, flags)
         else:
             self._dn_str = ldap_encode(other)
         self._flags = flags
@@ -163,11 +163,11 @@ class Dn(tuple):
     def base_dn(self):
         return Dn(self[1:], self._flags)
 
-    def _convert_format(self, out_format):
-        return type(self).convert_format(self._dn_str, self._flags, out_format)
+    def _format(self, out_format):
+        return type(self)._convert_format(self._dn_str, self._flags, out_format)
 
     @classmethod
-    def convert_format(cls, dn_str, in_format, out_format):
+    def _convert_format(cls, dn_str, in_format, out_format):
         if in_format is not None and (
            in_format & Dn.LDAP_DN_FORMAT_LDAPV2 == Dn.LDAP_DN_FORMAT_LDAPV2 ^
            in_format & Dn.LDAP_DN_FORMAT_LDAPV3 == Dn.LDAP_DN_FORMAT_LDAPV3 ^
@@ -191,30 +191,30 @@ class Dn(tuple):
 
     def format_ldapv2(self, flags=None):
         if flags is None:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_LDAPV2)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_LDAPV2))
         else:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_LDAPV2 | flags)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_LDAPV2 | flags))
 
     def format_ldapv3(self, flags=None):
         if flags is None:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_LDAPV3)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_LDAPV3))
         else:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_LDAPV3 | flags)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_LDAPV3 | flags))
 
     def format_dce(self, flags=None):
         if flags is None:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_DCE)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_DCE))
         else:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_DCE | flags)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_DCE | flags))
 
     def format_ufn(self, flags=None):
         if flags is None:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_UFN)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_UFN))
         else:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_UFN | flags)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_UFN | flags))
 
     def format_ad_canonical(self, flags=None):
         if flags is None:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_AD_CANONICAL)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_AD_CANONICAL))
         else:
-            return self._convert_format(Dn.LDAP_DN_FORMAT_AD_CANONICAL | flags)
+            return ldap_decode(self._format(Dn.LDAP_DN_FORMAT_AD_CANONICAL | flags))
