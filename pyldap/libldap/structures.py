@@ -148,7 +148,7 @@ class LDAPURLDesc(Structure):
     @property
     def lud_exts(self):
         if self._lud_exts:
-            yield iterate_array(self._lud_exts)
+            return tuple(iterate_array(self._lud_exts))
 
     @property
     def lud_crit_exts(self):
