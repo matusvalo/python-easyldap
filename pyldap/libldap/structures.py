@@ -135,7 +135,8 @@ class LDAPURLDesc(Structure):
     @property
     def lud_attrs(self):
         if self._lud_attrs:
-            return tuple(iterate_array(self._lud_attrs))
+            attrs = iterate_array(self._lud_attrs)
+            return None if attrs is None else tuple(attrs)
 
     @property
     def lud_scope(self):
@@ -148,7 +149,8 @@ class LDAPURLDesc(Structure):
     @property
     def lud_exts(self):
         if self._lud_exts:
-            return tuple(iterate_array(self._lud_exts))
+            exts = iterate_array(self._lud_exts)
+            return None if exts is None else tuple(exts)
 
     @property
     def lud_crit_exts(self):

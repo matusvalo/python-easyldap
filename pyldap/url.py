@@ -11,12 +11,13 @@ class Url(object):
     SCOPE_SUB = SCOPES['LDAP_SCOPE_SUBTREE']
     SCOPE_SUBORDINATE = SCOPES['LDAP_SCOPE_SUBORDINATE']        # OpenLDAP extension
 
-    def __init__(self, scheme, host, port, dn, attrs, scope, filter, extensions, has_crit_extension):
+    def __init__(self, scheme, host, port=None, dn=None, attrs=None, scope=None, filter=None, extensions=None,
+                 has_crit_extension=False):
         self.scheme = str(scheme)
         self.host = str(host)
-        self.port = int(port)
-        self.dn = str(dn)
-        self.attrs = tuple(attrs)
+        self.port = None if port is None else int(port)
+        self.dn = None if dn is None else str(dn)
+        self.attrs = None if attrs is None else tuple(attrs)
         if isinstance(scope, int):
             if scope not in SCOPES.values():
                 raise ValueError
@@ -25,8 +26,10 @@ class Url(object):
             if scope not in SCOPES.keys():
                 raise ValueError
             self.scope = SCOPES[scope]
-        self.filter = str(filter)
-        self.extensions = tuple(extensions)
+        else:
+            self.scope = None
+        self.filter = None if filter is None else str(filter)
+        self.extensions = None if extensions is None else tuple(extensions)
         self.has_crit_extension = bool(has_crit_extension)
 
     @classmethod
