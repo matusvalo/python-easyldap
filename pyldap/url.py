@@ -1,5 +1,5 @@
 from .libldap.functions import ldap_url_parse, ldap_is_ldap_url, ldap_free_urldesc
-from .tools import ldap_encode
+from .tools import ldap_encode, ldap_decode
 from .libldap.constants import SCOPES
 
 
@@ -35,14 +35,14 @@ class Url(object):
     @classmethod
     def parse_str(cls, url):
         url_desc = ldap_url_parse(ldap_encode(url))
-        obj = cls(scheme=url_desc.lud_scheme,
-                  host=url_desc.lud_host,
+        obj = cls(scheme=ldap_decode(url_desc.lud_scheme),
+                  host=ldap_decode(url_desc.lud_host),
                   port=url_desc.lud_port,
-                  dn=url_desc.lud_dn,
-                  attrs=url_desc.lud_attrs,
+                  dn=ldap_decode(url_desc.lud_dn),
+                  attrs=None if url_desc.lud_attrs is None else [ldap_decode(attr) for attr in url_desc.lud_attrs],
                   scope=url_desc.lud_scope,
-                  filter=url_desc.lud_filter,
-                  extensions=url_desc.lud_exts,
+                  filter=ldap_decode(url_desc.lud_filter),
+                  extensions=None if url_desc.lud_exts is None else [ldap_decode(ext) for ext in url_desc.lud_exts],
                   has_crit_extension=url_desc.lud_crit_exts)
         ldap_free_urldesc(url_desc)
         return obj
