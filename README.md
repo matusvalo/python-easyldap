@@ -1,4 +1,4 @@
-# pyldap
+# python-easyldap
 python-easyldap is python3 library implementing libldap functionality. It is written in Python and uses ctypes library for connecting to libldap
 library. It has simple and easy to use interface, but when needed, low level interface can be used.
 
