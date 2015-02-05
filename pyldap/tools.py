@@ -15,7 +15,6 @@ def is_ascii(s):
 def ldap_decode(s):
     if s is None:
         return None
-    import base64
     if isinstance(s, str):
         return str(s)
     elif isinstance(s, bytes):
@@ -36,7 +35,6 @@ def ldap_decode(s):
 def ldap_encode(s):
     if s is None:
         return None
-    import base64
     if isinstance(s, str):
         return s.encode('utf8')
     elif isinstance(s, bytes):
