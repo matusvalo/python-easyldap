@@ -1,5 +1,6 @@
 from .libldap.structures import LDAPMod
 
+
 def is_iterable(obj):
     from collections import Iterable
     return not (isinstance(obj, str) or isinstance(obj, bytes)) and isinstance(obj, Iterable)
