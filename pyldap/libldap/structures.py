@@ -84,7 +84,7 @@ class LDAPMod(Structure):
                 ('mod_vals', ModVals)]         # Attr. values
 
     def __init__(self, mod_op, mod_type, mod_vals):
-        super().__init__(c_int(mod_op), mod_type, mod_vals)
+        super(LDAPMod, self).__init__(c_int(mod_op), mod_type, mod_vals)
 
     @classmethod
     def create_binary(cls, mod_op, attr_name, values):

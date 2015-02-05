@@ -83,7 +83,7 @@ class QueryResult(object):
 
 class BaseEntry(object):
     def __init__(self, dn):
-        super().__init__()
+        super(BaseEntry, self).__init__()
         self._dn = ldap_encode(dn)
 
     @property

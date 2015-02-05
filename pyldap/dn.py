@@ -19,7 +19,7 @@ class Ava(AvaTuple):
         return AvaTuple.__new__(cls, attr, val)
 
     def __init__(self, attr, val, flags):
-        super().__init__(attr, val)
+        super(Ava, self).__init__(attr, val)
         self._flags = flags
 
     def is_null(self):
@@ -142,7 +142,7 @@ class Dn(tuple):
         else:
             self._dn_str = ldap_encode(other)
         self._flags = flags
-        super().__init__()
+        super(Dn, self).__init__()
 
     def __str__(self):
         return ldap_decode(self._dn_str)
