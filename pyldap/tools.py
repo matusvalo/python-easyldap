@@ -52,6 +52,7 @@ def ldap_encode(s):
             pass
         raise ValueError('Cannot encode to bytes')
 
+
 def build_binary_ldapmod(battr_name, op, vals):
     if is_iterable(vals):
         mod = LDAPMod.create_binary(op | LDAPMod.LDAP_MOD_BVALUES,
@@ -62,6 +63,7 @@ def build_binary_ldapmod(battr_name, op, vals):
                                     ldap_encode(battr_name),
                                     values=ldap_encode(vals))
     return mod
+
 
 def build_ascii_ldapmod(attr_name, op, vals):
     if is_iterable(vals):
