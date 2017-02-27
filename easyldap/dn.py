@@ -115,16 +115,17 @@ class Dn(tuple):
         if isinstance(other, str) or isinstance(other, bytes):
             dn = list()
             ldapdn = ldap_str2dn(ldap_encode(other), flags)
-            rdn_index = 0
-            try:
-                while True:
-                    if not bool(ldapdn[rdn_index]):
-                        break
-                    rdn = RDn(ldapdn[rdn_index])
-                    dn.append(rdn)
-                    rdn_index += 1
-            finally:
-                ldap_dnfree(ldapdn)
+            if ldapdn is not None:
+                rdn_index = 0
+                try:
+                    while True:
+                        if not bool(ldapdn[rdn_index]):
+                            break
+                        rdn = RDn(ldapdn[rdn_index])
+                        dn.append(rdn)
+                        rdn_index += 1
+                finally:
+                    ldap_dnfree(ldapdn)
         elif is_iterable(other):
             dn = other
         else:

@@ -246,7 +246,10 @@ _ldap_str2dn.errcheck = _ldap_result_check
 def ldap_str2dn(str, flags):
     ldapdn = LDAPDN()
     _ldap_str2dn(bytes(str), byref(ldapdn), flags)
-    return ldapdn
+    if bool(ldapdn):
+        return ldapdn
+    else:
+        return None
 
 
 _ldap_dn2str = lib_ldap.ldap_dn2str
