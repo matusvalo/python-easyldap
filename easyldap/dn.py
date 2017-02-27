@@ -19,7 +19,6 @@ class Ava(AvaTuple):
         return AvaTuple.__new__(cls, attr, val)
 
     def __init__(self, attr, val, flags):
-        super(Ava, self).__init__(attr, val)
         self._flags = flags
 
     def is_null(self):
